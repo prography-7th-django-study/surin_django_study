@@ -5,13 +5,19 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 
 
-class Brand(models.Model):
-    name = models.CharField(max_length=50)
-    category = models.ManyToManyField('Category')
-
-
 class Category(models.Model):
     name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class Brand(models.Model):
+    name = models.CharField(max_length=50)
+    category = models.ManyToManyField(Category)
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class Product(models.Model):
@@ -19,7 +25,7 @@ class Product(models.Model):
     price = models.IntegerField()
     image = models.ImageField(upload_to='cafe/products/images')
     description = models.TextField()
-    nutrition = models.TextField(help_text='쉼표(,)를 구분자로 작성해주세요.')
+    nutrition = models.JSONField(default=dict)
     hot_size = models.TextField(help_text='쉼표(,)를 구분자로 작성해주세요.', blank=True, default="")
     ice_size = models.TextField(help_text='쉼표(,)를 구분자로 작성해주세요.', blank=True, default="")
     limited_at = models.DateField(blank=True, null=True)
@@ -28,6 +34,11 @@ class Product(models.Model):
     # null을 허용하고 validation 처리를 하면 된다!! -> validation customize
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     # category - brand manytomany
+    # category가 모델로 존재하지 않으면 존재하는 카테고리를 보고 싶을 때 모든 인스턴스에 접근해서 distinct를 해야하니까
+    # 모델로서 존재하는 것이 더 좋겠지??
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class Review(models.Model):
