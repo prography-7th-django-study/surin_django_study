@@ -102,3 +102,5 @@ product_list = ProductViewSet.as_view({
     'patch':'partial_update',
     'delete':'destroy',
 })"""
+
+# git commit
