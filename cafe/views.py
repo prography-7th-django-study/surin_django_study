@@ -1,14 +1,6 @@
-from django.shortcuts import render
-from rest_framework.decorators import api_view
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.response import Response
-from rest_framework import status
+
 from cafe.models import Brand, Product
-from cafe.serializer import BrandSerializer, ProductSerializer
-from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.generics import GenericAPIView
+from cafe.serializer import BrandSerializer, ProductSerializer, CategorySerializer
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from django.contrib.auth.models import User
 from cafe.permissions import IsAdminUser
@@ -34,6 +26,39 @@ def brand_list(request):
     def get(self, request, *args, **kwargs):
         return self.list(request)"""
 
+"""class BrandDetailAPI(APIView):
+    def get_object(self, pk):
+        return get_object_or_404(Brand, pk=pk)
+
+    def get(self, request, pk):
+        serializer = BrandSerializer(self.get_object(pk=pk))
+        return Response(serializer.data)
+        
+    class BrandDetailMixins(RetrieveModelMixin, GenericAPIView):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request)
+"""
+
+
+"""class ProductListAPI(APIView):
+    def get_brand_object(self, pk):
+        return get_object_or_404(Brand, pk=pk)
+
+    def get(self, request, pk):
+        serializer = ProductSerializer(Product.objects.filter(brand=self.get_brand_object(pk=pk)), many=True)
+        return Response(serializer.data)"""
+
+
+"""class ProductListMixins(ListModelMixin, GenericAPIView, RetrieveModelMixin):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request)"""
+
 
 class BrandViewSet(ReadOnlyModelViewSet):
     queryset = Brand.objects.all()
@@ -48,59 +73,36 @@ brand_detail = BrandViewSet.as_view({
 })
 
 
-"""class BrandDetailAPI(APIView):
-    def get_object(self, pk):
-        return get_object_or_404(Brand, pk=pk)
+class CategoryViewSet(ReadOnlyModelViewSet):
+    serializer_class = CategorySerializer
 
-    def get(self, request, pk):
-        serializer = BrandSerializer(self.get_object(pk=pk))
-        return Response(serializer.data)"""
-
-
-class BrandDetailMixins(RetrieveModelMixin, GenericAPIView):
-    queryset = Brand.objects.all()
-    serializer_class = BrandSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request)
+    def get_queryset(self):
+        query = Brand.objects.get(pk=self.kwargs.get('brand_pk'))
+        return query.category.all()
 
 
-"""class ProductListAPI(APIView):
-    def get_brand_object(self, pk):
-        return get_object_or_404(Brand, pk=pk)
-
-    def get(self, request, pk):
-        serializer = ProductSerializer(Product.objects.filter(brand=self.get_brand_object(pk=pk)), many=True)
-        return Response(serializer.data)"""
-
-
-class ProductListMixins(ListModelMixin, GenericAPIView, RetrieveModelMixin):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request)
+category_list = CategoryViewSet.as_view({
+    'get':'list',
+})
 
 
 class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
-
     permission_classes = [
         IsAdminUser,
     ]
 
     def get_queryset(self):
-        return Product.object.filter(Brand.object.get(self.kwargs.get("brand_pk")))
+        return Product.objects.filter(brand=Brand.objects.get(pk=self.kwargs.get("brand_pk"))).all()
+
 
 product_list = ProductViewSet.as_view({
     'get':'list',
     'post':'create',
 })
-"""product_detail = ProductViewSet.as_view({
+product_detail = ProductViewSet.as_view({
     'get':'retrieve',
     'put':'update',
     'patch':'partial_update',
     'delete':'destroy',
-})"""
-
-# git commit
+})

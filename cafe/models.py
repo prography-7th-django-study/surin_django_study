@@ -28,7 +28,7 @@ class Product(models.Model):
     nutrition = models.JSONField(default=dict)
     hot_size = models.TextField(help_text='쉼표(,)를 구분자로 작성해주세요.', blank=True, default="")
     ice_size = models.TextField(help_text='쉼표(,)를 구분자로 작성해주세요.', blank=True, default="")
-    limited_at = models.DateField(blank=True, null=True)
+    is_limited = models.BooleanField(default=False)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     # 카테고리가 삭제된다고 모든 음료가 삭제되어야 할까?? 그럼 카테고리가 삭제되면 미분류로 되도록 설정하는 것은 현명할까..?
     # null을 허용하고 validation 처리를 하면 된다!! -> validation customize
