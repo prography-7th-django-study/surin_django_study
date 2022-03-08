@@ -85,6 +85,10 @@ category_list = CategoryViewSet.as_view({
     'get':'list',
 })
 
+category_detail = CategoryViewSet.as_view({
+    'get':'retrieve',
+})
+
 
 class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer

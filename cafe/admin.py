@@ -5,3 +5,4 @@ from cafe.models import *
 admin.site.register(Product)
 admin.site.register(Brand)
 admin.site.register(Category)
+admin.site.register(Size)

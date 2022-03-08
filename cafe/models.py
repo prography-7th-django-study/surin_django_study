@@ -14,7 +14,16 @@ class Category(models.Model):
 
 class Brand(models.Model):
     name = models.CharField(max_length=50)
-    category = models.ManyToManyField(Category)
+    categories = models.ManyToManyField(Category)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class Size(models.Model):
+    name = models.CharField(max_length=10)
+    capacity = models.IntegerField()
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.name}'
@@ -26,8 +35,8 @@ class Product(models.Model):
     image = models.ImageField(upload_to='cafe/products/images')
     description = models.TextField()
     nutrition = models.JSONField(default=dict)
-    hot_size = models.TextField(help_text='쉼표(,)를 구분자로 작성해주세요.', blank=True, default="")
-    ice_size = models.TextField(help_text='쉼표(,)를 구분자로 작성해주세요.', blank=True, default="")
+    hot_size = models.ManyToManyField(Size, blank=True, related_name='hot_size')
+    ice_size = models.ManyToManyField(Size, blank=True, related_name='ice_size')
     is_limited = models.BooleanField(default=False)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     # 카테고리가 삭제된다고 모든 음료가 삭제되어야 할까?? 그럼 카테고리가 삭제되면 미분류로 되도록 설정하는 것은 현명할까..?
