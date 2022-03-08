@@ -26,7 +26,7 @@ class Size(models.Model):
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name}({self.brand})'
 
 
 class Product(models.Model):
@@ -56,4 +56,7 @@ class Review(models.Model):
     score = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to='cafe/review/images', null=True)
+    image = models.ImageField(upload_to='cafe/review/images', null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.product}({self.pk})'
