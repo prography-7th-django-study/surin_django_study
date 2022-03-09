@@ -3,7 +3,7 @@ from cafe.models import Brand, Product
 from cafe.serializer import *
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from django.http import Http404
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -119,7 +119,7 @@ review_detail = ReviewViewSet.as_view({
 class UserReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
-        IsAuthenticated
+        IsAuthenticatedOrReadOnly
     ]
 
     def get_queryset(self):
