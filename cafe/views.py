@@ -3,7 +3,7 @@ from cafe.models import Brand, Product
 from cafe.serializer import *
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from django.http import Http404
-from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
 from rest_framework import generics
