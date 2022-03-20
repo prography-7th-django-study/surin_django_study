@@ -1,26 +1,119 @@
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from rest_framework import serializers
-from cafe.models import Brand, Category, Product, Review
+from cafe.models import Brand, Category, Product, Review, Size
+
+# to_representation 사용하는 것은 비추천
+# serializer method field
+# related field
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'password',
+        ]
+
+    def validate(self, data):
+        username = data.get('username')
+        password = data.get('password')
+
+        user = authenticate(username=username, password=password)
+
+        if user is None:
+            return None
+        return user
+
+
+class UserSignUpSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(allow_blank=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'email',
+            'password'
+        ]
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    hot_sizes = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+    ice_sizes = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+    category = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = [
+            'name',
+            'price',
+            'image',
+            'description',
+            'nutrition',
+            'hot_sizes',
+            'ice_sizes',
+            'is_limited',
+            'category',
+            'brand',
+            'total_score',
+        ]
 
-
-class BrandSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Brand
-        fields = '__all__'
+    def get_category(self, obj):
+        return obj.category.name
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(read_only=True)
+
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = [
+            'name',
+        ]
+
+
+class BrandSerializer(serializers.ModelSerializer):
+    categories = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+
+    class Meta:
+        model = Brand
+        fields = [
+            'name',
+            'categories',
+        ]
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(format="%Y년 %m월 %d일")
+
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = [
+            'product',
+            'content',
+            'score',
+            'author',
+            'created_at',
+            'image',
+        ]
+
+    def get_product(self, obj):
+        return obj.product.name
+
+    def get_author(self, obj):
+        return obj.author.username
+
+
+class SizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Size
+        fields = [
+            'name',
+        ]

@@ -1,37 +1,26 @@
-
-from cafe.models import Brand, Product
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from cafe.authentications import get_token
+from cafe.filters import LimitedProductFilter
 from cafe.serializer import *
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from django.http import Http404
-from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.generics import GenericAPIView
-from rest_framework.views import APIView
-from rest_framework import generics
-from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.db.models import Avg
+from rest_framework import filters
+from rest_framework.generics import GenericAPIView
 # Create your views here.
 
 
-# 브랜드 뷰
 class BrandViewSet(ReadOnlyModelViewSet):
-    #queryset = Brand.objects.all()
     serializer_class = BrandSerializer
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['name', 'score']
 
     def get_queryset(self):
-        brands = Brand.objects.annotate(score=Avg('products__total_score'))
-        return brands.order_by('-score')
+        return Brand.objects.annotate(score=Avg('products__total_score'))
 
 
-brand_list = BrandViewSet.as_view({
-    'get': 'list',
-})
-brand_detail = BrandViewSet.as_view({
-    'get': 'retrieve',
-})
-
-
-# 카테고리 뷰
-class CategoryViewSet(ReadOnlyModelViewSet):
+class BrandCategoryViewSet(ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
@@ -39,100 +28,77 @@ class CategoryViewSet(ReadOnlyModelViewSet):
         return query.categories.all()
 
 
-category_list = CategoryViewSet.as_view({
-    'get': 'list',
-})
+class BrandCategoryProductViewSet(ReadOnlyModelViewSet):
+    serializer_class = ProductSerializer
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['total_score', 'name']
 
-
-class CategoryDetailAPIView(APIView):
-
-    def get_object(self):
-        return Brand.objects.get(pk=self.kwargs.get('brand_pk'))
-
-    def get(self, request, pk, **kwargs):
-        try:
-            category = self.get_object().categories.get(pk=pk)
-        except Category.DoesNotExist:
-            raise Http404("Not Found")
-        products = Product.objects.filter(brand=self.get_object(), category=category).all().order_by('-total_score')
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Product.objects.filter(brand=self.kwargs['brand_pk'], category=self.kwargs['category_pk'])
 
 
 # 상품 뷰
-class ProductViewSet(ModelViewSet):
+class BrandProductViewSet(ReadOnlyModelViewSet):
     serializer_class = ProductSerializer
-    permission_classes = [
-        IsAdminUser,
-    ]
+    # 어차피 상품 등록, 수정 및 삭제는 어드민 사이트에서 할 것이기 때문에 굳이 put, post 메소드를 사용할 필요가 없다.
+    filter_backends = [filters.OrderingFilter, LimitedProductFilter]
+    ordering_fields = ['total_score', 'name']
+    # filters.py -> Ordering Filter custom -> limit=True parameter 사용하는 것도 방법
 
     def get_queryset(self):
-        return Product.objects.filter(brand=Brand.objects.get(pk=self.kwargs.get("brand_pk"))).all().order_by('-total_score')
+        return Product.objects.filter(brand=Brand.objects.get(pk=self.kwargs.get("brand_pk"))).all()
 
-
-product_list = ProductViewSet.as_view({
-    'get': 'list',
-    'post': 'create',
-})
-product_detail = ProductViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy',
-})
-
-
-class ProductLimitedListView(generics.ListAPIView, GenericAPIView):
-    serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        obj = Brand.objects.get(pk=self.kwargs.get('pk'))
-        return Product.objects.filter(brand=obj, is_limited=True)
+    # 데코레이터 사용
+    # @action(detail=False, url_path='limited')
+    # def get_limitation(self, request, **kwargs):
+    #     limited_products = Product.objects.filter(brand=Brand.objects.get(pk=kwargs.get("brand_pk")), is_limited=True).all()
+    #     serializer = self.get_serializer(limited_products, many=True)
+    #     return Response(serializer.data, status=200)
 
 
 # 리뷰 뷰
-class ReviewViewSet(ModelViewSet):
+class BrandProductReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
-        IsAuthenticated,
+        IsAuthenticatedOrReadOnly,
     ]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['score']
 
     def get_queryset(self):
         brand_pk = self.kwargs['brand_pk']
         product_pk = self.kwargs['product_pk']
-        return Review.objects.filter(product_id=product_pk, product__brand_id=brand_pk).order_by('-score')
-
-
-review_list = ReviewViewSet.as_view({
-    'get': 'list',
-    'post': 'create',
-})
-
-review_detail = ReviewViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy',
-})
+        return Review.objects.filter(product_id=product_pk, product__brand_id=brand_pk)
 
 
 class UserReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
-        IsAuthenticatedOrReadOnly
+        IsAuthenticated
     ]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['score']
 
     def get_queryset(self):
-        return Review.objects.filter(author=self.request.user).order_by('-score')
+        return Review.objects.filter(author=self.request.user)
 
 
-user_review_list = UserReviewViewSet.as_view({
-    'get': 'list',
-})
+class LoginView(GenericAPIView):
+    serializer_class = UserSerializer
 
-user_review_detail = UserReviewViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy'
-})
+    def post(self, request):
+        user = self.get_serializer().validate(request.data)
+        if user is None:
+            return Response(status=400)
+        token = get_token(user)
+        return Response(token, status=200)
+
+
+class SignUpView(GenericAPIView):
+    serializer_class = UserSignUpSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        serializer.create(serializer.data)
+        return Response(serializer.data, status=200)

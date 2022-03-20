@@ -3,3 +3,5 @@
 .idea
 
 cafe/__pychace__
+
+django_prj/secret.json
