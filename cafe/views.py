@@ -48,7 +48,7 @@ class BrandProductViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         return Product.objects.filter(brand=Brand.objects.get(pk=self.kwargs.get("brand_pk"))).all()
 
-    # 데코레이터 사용
+    # 데코레이터 사용 vs parameter 사용
     # @action(detail=False, url_path='limited')
     # def get_limitation(self, request, **kwargs):
     #     limited_products = Product.objects.filter(brand=Brand.objects.get(pk=kwargs.get("brand_pk")), is_limited=True).all()
@@ -101,4 +101,4 @@ class SignUpView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
         serializer.create(serializer.data)
-        return Response(serializer.data, status=200)
+        return Response('SignUp Succeed!', status=200)

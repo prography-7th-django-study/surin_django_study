@@ -117,3 +117,4 @@ class SizeSerializer(serializers.ModelSerializer):
         fields = [
             'name',
         ]
+
