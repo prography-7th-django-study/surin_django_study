@@ -17,7 +17,9 @@ class BrandViewSet(ReadOnlyModelViewSet):
     ordering_fields = ['name', 'score']
 
     def get_queryset(self):
-        return Brand.objects.annotate(score=Avg('products__total_score'))
+        # serializer에 score 필드가 선언되어 있어야 annotate로 받은 값이 들어가서 활용이 가능해진다 ?!
+        query = Brand.objects.annotate(score=Avg('products__total_score'))
+        return query
 
 
 class BrandCategoryViewSet(ReadOnlyModelViewSet):

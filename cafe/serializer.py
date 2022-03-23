@@ -46,6 +46,8 @@ class ProductSerializer(serializers.ModelSerializer):
     hot_sizes = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
     ice_sizes = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
     category = serializers.SerializerMethodField()
+    brand = serializers.SerializerMethodField()
+    total_score = serializers.DecimalField(decimal_places=2, max_digits=5)
 
     class Meta:
         model = Product
@@ -66,6 +68,9 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_category(self, obj):
         return obj.category.name
 
+    def get_brand(self, obj):
+        return obj.brand.name
+
 
 class CategorySerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
@@ -79,12 +84,14 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class BrandSerializer(serializers.ModelSerializer):
     categories = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+    score = serializers.DecimalField(decimal_places=2, max_digits=5)
 
     class Meta:
         model = Brand
         fields = [
             'name',
             'categories',
+            'score'
         ]
 
 
