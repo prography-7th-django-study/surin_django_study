@@ -15,4 +15,4 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "soul_prj.wsgi.develop:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "django_prj.wsgi:application"]
