@@ -14,5 +14,5 @@ services:
     context: .
     dockerfile: Dockerfile
   volumes:
-    - .:/server
+    - .:/surin_django_study
 
