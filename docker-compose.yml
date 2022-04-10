@@ -15,5 +15,4 @@ services:
     dockerfile: Dockerfile
     volumes:
       - .:/server
-    expose:
-    - "8000"
+
