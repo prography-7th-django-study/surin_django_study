@@ -5,7 +5,7 @@ services:
   ports:
    - "80:80"
   volumes:
-   - ./static:/surin_django_study/static
+   - ./static:/static
    - ./nginx:/etc/nginx/conf.d
   depends_on:
    - web
