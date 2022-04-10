@@ -7,8 +7,6 @@ services:
   volumes:
    - ./static:/static
    - ./nginx:/etc/nginx/conf.d
-   - ./nginx/nginx.conf:/etc/nginx/sites-avaliable/
-   - ./nginx/nginx.conf:/etc/nginx/sites-enabled/
   depends_on:
    - web
  web:
