@@ -1,5 +1,5 @@
 """
-WSGI config for django_prj project.
+WSGI nginx for django_prj project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

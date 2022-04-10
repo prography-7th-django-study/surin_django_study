@@ -1,5 +1,5 @@
 """
-ASGI config for django_prj project.
+ASGI nginx for django_prj project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
