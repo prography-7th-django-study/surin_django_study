@@ -3,9 +3,9 @@ services:
  nginx:
   image: nginx:latest
   ports:
-   - "80:8000"
+   - "80:80"
   volumes:
-   - ./static:/static
+   - ./static:/surin_django_study/static
    - ./nginx:/etc/nginx/conf.d
   depends_on:
    - web
@@ -15,4 +15,5 @@ services:
     dockerfile: Dockerfile
   volumes:
     - .:/surin_django_study
+    - ./static:/surin_django_study/static
 
